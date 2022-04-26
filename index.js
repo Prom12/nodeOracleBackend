@@ -21,7 +21,7 @@ app.listen(port, () =>
 );
 
 // Functions with Connection
-async function selectAllEmployees(req, res) {
+async function selectAll(req, res, table) {
   try {
     connection = await oracledb.getConnection({
       user: user,
@@ -30,8 +30,8 @@ async function selectAllEmployees(req, res) {
     });
 
     console.log("connected to database");
-    // run query to get all employees
-    result = await connection.execute(`SELECT * FROM EMPLOYEE`);
+    // run query to get all
+    result = await connection.execute(`SELECT * FROM ${table}`);
   } catch (err) {
     //send error message
     return res.send(err.message);
@@ -46,10 +46,10 @@ async function selectAllEmployees(req, res) {
       }
     }
     if (result.rows.length == 0) {
-      //query return zero employees
-      return res.send("There is no data in employees table");
+      //query return zero
+      return res.send(`There is no data in ${table} table`);
     } else {
-      //send all employees
+      //send all
       return res.send(result.rows);
     }
   }
@@ -91,9 +91,16 @@ async function selectEmployeesById(req, res, id) {
 
 //Urls that call connection
 
-//get employees
+//get all employees
 app.get("/employees", function (req, res) {
-  selectAllEmployees(req, res);
+  let table = "EMPLOYEE";
+  selectAll(req, res, table);
+});
+
+//get all employees
+app.get("/customers", function (req, res) {
+  let table = "CUSTOMER";
+  selectAll(req, res, table);
 });
 
 //get employee?id=<id employee>
