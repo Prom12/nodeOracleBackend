@@ -5,58 +5,51 @@ var password = "prom";
 var user = "c##prom";
 var connectionString = "localhost/orcl";
 let connection;
-let tableName = "EMPLOYEE";
+let tableName = "PAYMENTMETHOD";
 
 ///////////////////////////routes///////////
-export function getAllEmployees(req, res) {
+export function getAllPaymentMethods(req, res) {
   select(res, `SELECT * FROM ${tableName}`);
 }
 
-export function getEmployee(req, res) {
+export function getPaymentMethod(req, res) {
   select(
     res,
     `SELECT * FROM ${tableName} where ${tableName}NO= '${req.params.id}'`
   );
 }
 
-export function InsertEmployee(req, res) {
+export function InsertPaymentMethod(req, res) {
   try {
     var { payload } = [];
     payload = req.body;
 
-    let id = farmhash.hash64(
-      new Buffer.from(
-        payload.title +
-          payload.firstName +
-          payload.middleName +
-          payload.socialSecurity +
-          payload.sex
-      )
-    );
-
-    insertEmployee(res, tableName, id, payload);
+    let id = farmhash.hash64(new Buffer.from(payload.paymentmethod));
+    let procedure = "INSERT";
+    insertPaymentMethod(res, tableName, id, payload, procedure);
   } catch (err) {
     console.log(err);
     res.status(500).send();
   }
 }
-export function UpdateEmployee(req, res) {
+
+export function UpdatePaymentMethod(req, res) {
   try {
     var { payload } = [];
     payload = req.body;
 
-    updateEmployee(res, tableName, id, payload);
+    updatePaymentMethod(res, tableName, id, payload);
   } catch (err) {
     console.log(err);
     res.status(500).send();
   }
 }
-export function DeleteEmployee(req, res) {
+export function DeletePaymentMethod(req, res) {
   try {
     var { payload } = [];
     payload = req.body;
 
-    deleteEmployee(res, tableName, id, payload);
+    deletePaymentMethod(res, tableName, id, payload);
   } catch (err) {
     console.log(err);
     res.status(500).send();
@@ -103,7 +96,7 @@ async function select(res, execution) {
 }
 
 // Insert function for adding to any table
-async function insertEmployee(res, tableName, id, payload) {
+async function insertPaymentMethod(res, tableName, id, payload, procedure) {
   try {
     connection = await oracledb.getConnection({
       user: user,
@@ -111,25 +104,9 @@ async function insertEmployee(res, tableName, id, payload) {
       connectString: connectionString,
     });
     result = await connection.execute(
-      `INSERT INTO ${tableName} VALUES (:0, :1,:2, :3, :4,:5, :6, :7, :8, :9,:10, :11, :12, :13, :14)`,
-      [
-        id,
-        payload.title,
-        payload.firstName,
-        payload.middleName,
-        payload.lastName,
-        payload.address,
-        payload.workTelNo,
-        payload.homeTelNo,
-        payload.employerAddress,
-        payload.socialSecurity,
-        new Date(),
-        payload.position,
-        payload.sex,
-        payload.salary,
-        new Date(),
+      `exec ${procedure}PAYMENTMETHOD @PAYMENTMETHODNO = :0,@PAYMENTMETHOD = :1`[
+        (id, payload.paymentMethod)
       ],
-      { autoCommit: true },
       function (err) {
         if (err) {
           return res.send(err);
@@ -154,8 +131,8 @@ async function insertEmployee(res, tableName, id, payload) {
   }
 }
 
-// Update function for adding to any table
-async function updateEmployee(res, tableName, id, payload) {
+// Insert function for adding to any table
+async function updatePaymentMethod(res, tableName, id, payload, procedure) {
   try {
     connection = await oracledb.getConnection({
       user: user,
@@ -163,39 +140,9 @@ async function updateEmployee(res, tableName, id, payload) {
       connectString: connectionString,
     });
     result = await connection.execute(
-      `UPDATE ${tableName} SET 
-      TITLE = :0, 
-      FIRSTNAME = :1, 
-      MIDDLENAME = :2, 
-      LASTNAME =:3,
-      ADDRESS = :4,
-      WORKTELNO = :5,
-      HOMETELNO =:6,
-      EMPEMAILADDRESS= :7,
-      SOCIALSECURITY = :8,
-      DATEOB = :9,
-      POSITION = :10,
-      SEX = :11,
-      SALARY = :12, 
-      DATESTARTED = :13 WHERE EMPLOYEENO = :14`,
-      [
-        payload.title,
-        payload.firstName,
-        payload.middleName,
-        payload.lastName,
-        payload.address,
-        payload.workTelNo,
-        payload.homeTelNo,
-        payload.employerAddress,
-        payload.socialSecurity,
-        new Date(),
-        payload.position,
-        payload.sex,
-        payload.salary,
-        new Date(),
-        payload.id,
+      `exec ${procedure}PAYMENTMETHOD @PAYMENTMETHODNO = :0,@PAYMENTMETHOD = :1`[
+        (id, payload.paymentMethod)
       ],
-      { autoCommit: true },
       function (err) {
         if (err) {
           return res.send(err);
@@ -220,8 +167,8 @@ async function updateEmployee(res, tableName, id, payload) {
   }
 }
 
-// Delete function for adding to any table
-async function deleteEmployee(res, tableName, id, payload) {
+// Insert function for adding to any table
+async function deletePaymentMethod(res, tableName, id, payload, procedure) {
   try {
     connection = await oracledb.getConnection({
       user: user,
@@ -229,9 +176,9 @@ async function deleteEmployee(res, tableName, id, payload) {
       connectString: connectionString,
     });
     result = await connection.execute(
-      `DELETE FROM ${tableName} WHERE ${tableName}NO = :1`,
-      [payload.id],
-      { autoCommit: true },
+      `exec ${procedure}PAYMENTMETHOD @PAYMENTMETHODNO = :0,@PAYMENTMETHOD = :1`[
+        (id, payload.paymentMethod)
+      ],
       function (err) {
         if (err) {
           return res.send(err);

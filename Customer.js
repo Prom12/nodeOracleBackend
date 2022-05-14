@@ -33,6 +33,29 @@ export function InsertCustomer(req, res) {
     res.status(500).send();
   }
 }
+
+export function UpdateCustomer(req, res) {
+  try {
+    var { payload } = [];
+    payload = req.body;
+
+    updateCustomer(res, tableName, id, payload);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send();
+  }
+}
+export function DeleteCustomer(req, res) {
+  try {
+    var { payload } = [];
+    payload = req.body;
+
+    deleteCustomer(res, tableName, id, payload);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send();
+  }
+}
 ////////////////////// Functions/////////////////
 async function select(res, execution) {
   try {
@@ -95,6 +118,101 @@ async function insertCustomer(res, tableName, id, payload) {
       ],
       { autoCommit: true },
       function (err, result) {
+        if (err) {
+          return res.send(err);
+        } else {
+          return res.send("Data Successfully Saved");
+        }
+      }
+    );
+  } catch (err) {
+    //send error message
+    return res.send(err.message);
+  } finally {
+    if (connection) {
+      try {
+        // Always close connections
+        await connection.close();
+        console.log("close connection success");
+      } catch (err) {
+        return console.error(err.message);
+      }
+    }
+  }
+}
+
+// Update function for adding to any table
+async function updateCustomer(res, tableName, id, payload) {
+  try {
+    connection = await oracledb.getConnection({
+      user: user,
+      password: password,
+      connectString: connectionString,
+    });
+    result = await connection.execute(
+      `UPDATE ${tableName} SET 
+      NAME = :0, 
+      STREET = :1, 
+      CITY = :2, 
+      STATE =:3,
+      ZIPCODE = :4,
+      TELNO = :5,
+      FAXNO =:6,
+      DATEOB= :7,
+      MARITALSTATUS = :8,
+      CREDITRATING = :9,
+       WHERE ${tableName}NO = :10`,
+      [
+        payload.name,
+        payload.street,
+        payload.city,
+        payload.state,
+        payload.zipCode,
+        payload.telNo,
+        payload.faxNo,
+        new Date(),
+        payload.maritalStatus,
+        payload.creditRating,
+        payload.id,
+      ],
+      { autoCommit: true },
+      function (err) {
+        if (err) {
+          return res.send(err);
+        } else {
+          return res.send("Data Successfully Saved");
+        }
+      }
+    );
+  } catch (err) {
+    //send error message
+    return res.send(err.message);
+  } finally {
+    if (connection) {
+      try {
+        // Always close connections
+        await connection.close();
+        console.log("close connection success");
+      } catch (err) {
+        return console.error(err.message);
+      }
+    }
+  }
+}
+
+// Delete function for adding to any table
+async function deleteCustomer(res, tableName, id, payload) {
+  try {
+    connection = await oracledb.getConnection({
+      user: user,
+      password: password,
+      connectString: connectionString,
+    });
+    result = await connection.execute(
+      `DELETE FROM ${tableName} WHERE ${tableName}NO = :1`,
+      [payload.id],
+      { autoCommit: true },
+      function (err) {
         if (err) {
           return res.send(err);
         } else {

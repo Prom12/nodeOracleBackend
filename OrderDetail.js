@@ -5,58 +5,50 @@ var password = "prom";
 var user = "c##prom";
 var connectionString = "localhost/orcl";
 let connection;
-let tableName = "EMPLOYEE";
-
+let tableName = "ORDERDETAIL";
 ///////////////////////////routes///////////
-export function getAllEmployees(req, res) {
+export function getAllOrderDetails(req, res) {
   select(res, `SELECT * FROM ${tableName}`);
 }
 
-export function getEmployee(req, res) {
+export function getOrderDetail(req, res) {
   select(
     res,
     `SELECT * FROM ${tableName} where ${tableName}NO= '${req.params.id}'`
   );
 }
 
-export function InsertEmployee(req, res) {
+export function InsertOrderDetail(req, res) {
   try {
     var { payload } = [];
     payload = req.body;
 
-    let id = farmhash.hash64(
-      new Buffer.from(
-        payload.title +
-          payload.firstName +
-          payload.middleName +
-          payload.socialSecurity +
-          payload.sex
-      )
-    );
+    let id = farmhash.hash64(new Buffer.from(payload.quantityOrdered));
 
-    insertEmployee(res, tableName, id, payload);
+    insertOrderDetail(res, tableName, id, payload);
   } catch (err) {
     console.log(err);
     res.status(500).send();
   }
 }
-export function UpdateEmployee(req, res) {
+
+export function UpdateOrderDetail(req, res) {
   try {
     var { payload } = [];
     payload = req.body;
 
-    updateEmployee(res, tableName, id, payload);
+    updateOrderDetail(res, tableName, id, payload);
   } catch (err) {
     console.log(err);
     res.status(500).send();
   }
 }
-export function DeleteEmployee(req, res) {
+export function DeleteOrderDetail(req, res) {
   try {
     var { payload } = [];
     payload = req.body;
 
-    deleteEmployee(res, tableName, id, payload);
+    deleteOrderDetail(res, tableName, id, payload);
   } catch (err) {
     console.log(err);
     res.status(500).send();
@@ -78,7 +70,6 @@ async function select(res, execution) {
       } else {
         if (result.rows.length == 0) {
           //query return zero
-          console.log(result);
           return res.send([]);
         } else {
           //send all
@@ -101,9 +92,7 @@ async function select(res, execution) {
     }
   }
 }
-
-// Insert function for adding to any table
-async function insertEmployee(res, tableName, id, payload) {
+async function insertOrderDetail(res, tableName, id, payload) {
   try {
     connection = await oracledb.getConnection({
       user: user,
@@ -111,26 +100,10 @@ async function insertEmployee(res, tableName, id, payload) {
       connectString: connectionString,
     });
     result = await connection.execute(
-      `INSERT INTO ${tableName} VALUES (:0, :1,:2, :3, :4,:5, :6, :7, :8, :9,:10, :11, :12, :13, :14)`,
-      [
-        id,
-        payload.title,
-        payload.firstName,
-        payload.middleName,
-        payload.lastName,
-        payload.address,
-        payload.workTelNo,
-        payload.homeTelNo,
-        payload.employerAddress,
-        payload.socialSecurity,
-        new Date(),
-        payload.position,
-        payload.sex,
-        payload.salary,
-        new Date(),
-      ],
+      `INSERT INTO ${tableName} VALUES (:0, :1,:2, :3)`,
+      [id, payload.orderNo, payload.productNo, payload.quantityOrdered],
       { autoCommit: true },
-      function (err) {
+      function (err, result) {
         if (err) {
           return res.send(err);
         } else {
@@ -155,7 +128,7 @@ async function insertEmployee(res, tableName, id, payload) {
 }
 
 // Update function for adding to any table
-async function updateEmployee(res, tableName, id, payload) {
+async function updateOrderDetail(res, tableName, id, payload) {
   try {
     connection = await oracledb.getConnection({
       user: user,
@@ -164,37 +137,11 @@ async function updateEmployee(res, tableName, id, payload) {
     });
     result = await connection.execute(
       `UPDATE ${tableName} SET 
-      TITLE = :0, 
-      FIRSTNAME = :1, 
-      MIDDLENAME = :2, 
-      LASTNAME =:3,
-      ADDRESS = :4,
-      WORKTELNO = :5,
-      HOMETELNO =:6,
-      EMPEMAILADDRESS= :7,
-      SOCIALSECURITY = :8,
-      DATEOB = :9,
-      POSITION = :10,
-      SEX = :11,
-      SALARY = :12, 
-      DATESTARTED = :13 WHERE EMPLOYEENO = :14`,
-      [
-        payload.title,
-        payload.firstName,
-        payload.middleName,
-        payload.lastName,
-        payload.address,
-        payload.workTelNo,
-        payload.homeTelNo,
-        payload.employerAddress,
-        payload.socialSecurity,
-        new Date(),
-        payload.position,
-        payload.sex,
-        payload.salary,
-        new Date(),
-        payload.id,
-      ],
+      ORDERNO = :0, 
+      PRODUCTNO = :1, 
+      QUANTITYORDERED = :2, 
+       WHERE ${tableName}NO = :3`,
+      [payload.orderNo, payload.productNo, payload.quantityOrdered, payload.id],
       { autoCommit: true },
       function (err) {
         if (err) {
@@ -221,7 +168,7 @@ async function updateEmployee(res, tableName, id, payload) {
 }
 
 // Delete function for adding to any table
-async function deleteEmployee(res, tableName, id, payload) {
+async function deleteOrderDetail(res, tableName, id, payload) {
   try {
     connection = await oracledb.getConnection({
       user: user,
